@@ -1,6 +1,5 @@
 # 🤖 Bot de Validación en ARCA
-
-Este script automatiza la validación de CUITs de clientes utilizando las APIs de Tango Gestión y Arca con la api de  Mr. Bot.
+He desarrollado un bot en Python con Tkinter orientado a empresas que utilizan Tango Gestión. Este producto mínimo viable (PMV) facilita la validación masiva de clientes dados de baja, conectándose a la API de Tango Gestión y a la API Mr. Bot, para consultar la constancia de inscripción de los clientes en la plataforma Arca.
 
 ## Descripción
 
@@ -111,4 +110,4 @@ Agradecer a [abustosp](https://github.com/abustosp) por la API de Mr. Bot.
 
 ![Bot de Validación](Bot_de_Validación.png)
 ![API de Mr Bot](API.png)
-
+![API de Mr Bot](Apertura Clientes.jpeg)
