@@ -1,6 +1,6 @@
 # 🤖 Bot de Validación en ARCA
 
-Este script automatiza la validación de CUITs de clientes utilizando las APIs de Tango Gestión y Arca (Mr Robot).
+Este script automatiza la validación de CUITs de clientes utilizando las APIs de Tango Gestión y Arca con la api de  Mr. Bot.
 
 ## Descripción
 
@@ -46,8 +46,8 @@ pip install -r requirements.txt
 ```
 TANGO_API_TOKEN=tu_token_de_tango
 TANGO_COMPANY_ID=tu_id_de_empresa_de_tango
-AFIP_USER=tu_usuario_de_afip
-AFIP_API_KEY=tu_api_key_de_afip
+AFIP_USER=tu_usuario de Mr. Bot
+AFIP_API_KEY=tu_api_key_de_ Mr. Bot 
 ```
 
 ## Uso
@@ -69,7 +69,7 @@ Asegúrate de que las credenciales en el archivo `Access_Key.txt` sean correctas
 
 ### ¿Cómo puedo modificar los criterios de filtrado de clientes?
 
-Puedes modificar la función `filtrar_clientes` en el script `Bot_de_Validación_en_ARCA.pyw` para ajustar los criterios de filtrado.
+Puedes modificar la función `filtrar_clientes` en el script `Bot_de_Validación_en_ARCA.py` para ajustar los criterios de filtrado.
 
 ## Solución de Problemas
 
