@@ -110,4 +110,4 @@ Agradecer a [abustosp](https://github.com/abustosp) por la API de Mr. Bot.
 
 ![Bot de Validación](Bot_de_Validación.png)
 ![API de Mr Bot](API.png)
-![API de Mr Bot](Apertura Clientes.jpeg)
+![API Tango Gestión Server](Apertura Clientes.png)
