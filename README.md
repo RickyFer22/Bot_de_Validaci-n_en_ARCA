@@ -27,11 +27,11 @@ El script se conecta a la API de Tango Gestión para obtener la lista de cliente
 
 1. 📥 Clona este repositorio:
 ```bash
-git clone https://github.com/tuusuario/Bot_Contancia_baja.git
+git clone https://github.com/RickyFer22/Bot_de_Validacion_en_ARCA.git
 ```
 2. 📂 Navega al directorio del proyecto:
 ```bash
-cd Bot_Contancia_baja
+cd Bot_de_Validacion_en_ARCA
 ```
 3. 💻 Instala las dependencias:
 ```bash
