@@ -264,14 +264,14 @@ class ModernApp:
         Objetivo:
         - Obtener la lista de clientes de Tango Gestión con la api.
         - Filtrar los clientes que cumplan con ciertas condiciones.
-        - Validar el CUIT de cada cliente con la API de Mr Robot con Arca (Ex Afip).
+        - Validar el CUIT de cada cliente con la API de Mr Bot con Arca (Ex Afip).
         - Generar un reporte en Excel con los clientes que presenten
           problemas en la validación.
 
         Funcionamiento:
         1. Se conecta a la API de Tango Gestión para obtener la lista de clientes.
         2. Filtra los clientes según las condiciones especificadas.
-        3. Itera sobre la lista de clientes filtrados y valida cada CUIT con la API de Mr Robot con Arca (Ex Afip) 
+        3. Itera sobre la lista de clientes filtrados y valida cada CUIT con la API de Mr Bot con Arca (Ex Afip) 
         """
 
         # Crear un Text widget para mostrar la información
