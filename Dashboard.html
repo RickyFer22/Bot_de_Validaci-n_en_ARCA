@@ -1,0 +1,639 @@
+<html>
+<head>
+    <base href="."/>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Dashboard ARCA (Ex Afip) - Análisis de Errores</title>
+
+    <!-- CDNs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.17.0/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/jasondavies/d3-cloud@1.2.5/build/d3.layout.cloud.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet"/>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #6C63FF;
+            --secondary-color: #FF6584;
+            --accent-color: #4ECDC4;
+            --background-color: #F8F9FD;
+            --success-color: #2ECC71;
+            --warning-color: #FFD93D;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 20px;
+            color: #2D3436;
+        }
+
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, var(--primary-color), #4A90E2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 25px;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 20px rgba(74, 144, 226, 0.1);
+            transition: all 0.3s ease;
+            border: none;
+            margin-bottom: 25px;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(74, 144, 226, 0.2);
+        }
+
+        .card-header {
+            color: var(--primary-color);
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            border: none;
+            background: none;
+            padding: 0;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            padding: 10px;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary-color), #6FB1FF);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:nth-child(1) {
+            background: linear-gradient(135deg, var(--primary-color), #4A90E2);
+        }
+
+        .stat-card:nth-child(2) {
+            background: linear-gradient(135deg, #2E856D, var(--secondary-color));
+        }
+
+        .stat-card:nth-child(3) {
+            background: linear-gradient(135deg, #C17B1E, var(--accent-color));
+        }
+
+        .stat-card:hover {
+            transform: scale(1.03);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .filters-section {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 20px rgba(74, 144, 226, 0.1);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #E6E8EB;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 20px;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, var(--primary-color), #6FB1FF);
+            color: white;
+            padding: 15px;
+            font-weight: 600;
+        }
+
+        .data-table td {
+            padding: 12px 15px;
+            font-size: 14px;
+            line-height: 1.4;
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border-bottom: 1px solid #E6E8EB;
+        }
+
+        .data-table tr:hover {
+            background-color: #F8F9FD;
+        }
+
+        .export-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 10px;
+        }
+
+        .export-btn:hover {
+            background: #E69516;
+            transform: translateY(-2px);
+        }
+
+        #wordCloud {
+            width: 100%;
+            height: 400px;
+            background: white;
+            border-radius: 15px;
+        }
+
+        #wordCloud svg {
+            border-radius: 15px;
+        }
+
+        #wordCloud text {
+            transition: all 0.3s ease;
+        }
+
+        #wordCloud text:hover {
+            opacity: 0.7;
+            cursor: pointer;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        @media print {
+            .export-btn {
+                display: none;
+            }
+
+            .chart-container {
+                page-break-inside: avoid;
+                height: 500px !important;
+            }
+
+            body {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <h1 class="text-center mb-4">Dashboard de Análisis ARCA (Ex Afip)</h1>
+
+    <div class="filters-section">
+        <div class="row">
+            <div class="col-md-12 text-end">
+                <button class="export-btn" onclick="exportToExcel()">Exportar a Excel</button>
+                <button class="export-btn" onclick="exportToPDF()">Exportar a PDF</button>
+            </div>
+        </div>
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-value" id="totalEmpresas">0</div>
+                <div class="stat-label">Total de Empresas</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #2E856D, #50E3C2)">
+                <div class="stat-value" id="totalErrores">0</div>
+                <div class="stat-label">Total de Empresas con Bajas</div>
+            </div>
+             <div class="stat-card" style="background: linear-gradient(135deg, #C17B1E, #F5A623)">
+                <div class="stat-value" id="promedioErrores">0</div>
+                <div class="stat-label">Diferencia</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="card">
+            <div class="card-header">Distribución de Tipos de Baja</div>
+            <div class="chart-container">
+                <canvas id="errorDistribution"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Bajas Más Frecuentes</div>
+            <div class="chart-container">
+                <canvas id="errorFrequency"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Nube de Palabras - Tipos de Baja</div>
+            <div class="chart-container">
+                <div id="wordCloud"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">Tabla de Frecuencia de las Oraciones Más Comunes</div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Oración</th>
+                    <th>Cantidad</th>
+                </tr>
+                </thead>
+                <tbody id="frequencyTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+      <div class="card mt-4">
+            <div class="card-header">Buscar por CUIT o Razón Social</div>
+            <div class="mb-3 p-3">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <input type="text" class="search-input" placeholder="Buscar por CUIT o Razón Social...">
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn" style="background-color: var(--primary-color); color: white;" onclick="searchTable()">
+                            Buscar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <div class="card mt-4">
+        <div class="card-header">Detalle de Baja por Empresa</div>
+
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Código de Cliente</th>
+                    <th>CUIT</th>
+                    <th>Razón Social</th>
+                    <th>Detalles de la baja</th>
+                </tr>
+                </thead>
+                <tbody id="errorTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let rawData = [];
+     let errorData;
+
+
+    fetch('chart_data.json')
+        .then(response => response.json())
+        .then(data => {
+            errorData= data;
+              fetch('reporte_afip_errores_20241214_113014.xlsx')
+                .then(response => response.arrayBuffer())
+                .then(buffer => {
+                    const workbook = XLSX.read(buffer, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                     const headers = rawData[0];
+                     const data = rawData.slice(1).map(row => {
+                            return headers.reduce((obj, header, index) => {
+                                obj[header] = row[index];
+                                return obj;
+                            }, {});
+                        });
+                         processData(data);
+                        updateWordCloud(data);
+                         updateCharts(data, errorData);
+                        updateStats(data);
+
+                })
+                 .catch(error => {
+                    console.error('Error:', error);
+                });
+
+
+        })
+        .catch(error => {
+            console.error('Error al cargar chart_data.json:', error);
+        });
+ function processData(data) {
+  const errorTableBody = document.getElementById('errorTableBody');
+  data.forEach(row => {
+    const tr = errorTableBody.insertRow();
+     tr.insertCell(0).textContent = row.COD_GVA14;
+    tr.insertCell(1).textContent = row.Cuit;
+    tr.insertCell(2).textContent = row.RAZON_SOCI;
+    tr.insertCell(3).textContent = row['Detalles de la baja'];
+  });
+   updateFrequencyTable(data);
+}
+ function updateFrequencyTable(data) {
+        const frequencyMap = {};
+        data.forEach(row => {
+            const sentence = row['Detalles de la baja'];
+           if (sentence) {
+                if (frequencyMap[sentence]) {
+                    frequencyMap[sentence]++;
+                } else {
+                    frequencyMap[sentence] = 1;
+                }
+            }
+        });
+        const frequencyArray = Object.entries(frequencyMap).sort(([, countA], [, countB]) => countB - countA);
+        const frequencyTableBody = document.getElementById('frequencyTableBody');
+        frequencyTableBody.innerHTML = '';
+        frequencyArray.forEach(([sentence, count]) => {
+            const tr = frequencyTableBody.insertRow();
+            tr.insertCell(0).textContent = sentence;
+            tr.insertCell(1).textContent = count;
+        });
+    }
+    
+function updateStats(data) {
+    const totalEmpresas = data.length;
+    const totalErrores = data.filter(row => row['Detalles de la baja'] ).length;
+    const promedioErrores = (totalErrores/totalEmpresas).toFixed(2);
+    document.getElementById('totalEmpresas').textContent = totalEmpresas;
+    document.getElementById('totalErrores').textContent = totalErrores;
+     document.getElementById('promedioErrores').textContent = promedioErrores;
+}
+
+    function searchTable() {
+        const input = document.querySelector('.search-input');
+        const filter = input.value.toUpperCase();
+         const table = document.querySelector('.data-table');
+        const tr = table.getElementsByTagName('tr');
+        for (let i = 1; i < tr.length; i++) {
+             let match = false;
+            const td = tr[i].getElementsByTagName('td');
+            for (let j = 0; j < td.length; j++) {
+                 if (td[j].textContent.toUpperCase().indexOf(filter) > -1) {
+                    match = true;
+                    break;
+                }
+            }
+            if(match) {
+                tr[i].style.display = "";
+            } else {
+               tr[i].style.display = "none";
+            }
+
+        }
+    }
+    document.querySelector('.search-input').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            searchTable();
+        }
+    });
+
+  function exportToExcel() {
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(rawData);
+
+          const divsToCapture = document.querySelectorAll('.card');
+        let promises = [];
+       for(let i = 0; i < divsToCapture.length; i++) {
+           promises.push(html2canvas(divsToCapture[i], { scale: 0.8 }))
+       }
+        Promise.all(promises).then(canvases => {
+
+            canvases.forEach((canvas, i) => {
+             const imgData = canvas.toDataURL('image/png');
+              XLSX.utils.sheet_add_aoa(ws, [[{ t: 's', v:  "", s: { alignment: { vertical: "center", horizontal: "center"} } }]], { origin: -1 });
+             XLSX.utils.sheet_add_aoa(ws, [[{ t: 's', v: "", s: { alignment: { vertical: "center", horizontal: "center"} } }]], { origin: -1 });
+                XLSX.utils.sheet_add_aoa(ws, [[ { t: 's', v:  "", s: { alignment: { vertical: "center", horizontal: "center"} } }]], { origin: -1 });
+             XLSX.utils.sheet_add_aoa(ws, [[{ t: 's', v: "", s: { alignment: { vertical: "center", horizontal: "center"} } }]], { origin: -1 });
+             
+            const image = { t:'s', v: imgData, s: { alignment: { vertical: "center", horizontal: "center"} }, w: 300, h: 200};
+               XLSX.utils.sheet_add_aoa(ws, [[image]], { origin: -1 });
+            });
+
+            XLSX.utils.book_append_sheet(wb, ws, 'Dashboard');
+            XLSX.writeFile(wb, 'reporte_errores.xlsx');
+        });
+
+    }
+  function exportToPDF() {
+        const { jsPDF } = window.jspdf;
+         const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+        const divsToCapture = document.querySelectorAll('.card');
+        let promises = [];
+         for(let i = 0; i < divsToCapture.length; i++) {
+            promises.push(html2canvas(divsToCapture[i], { scale: 0.8 }))
+        }
+
+         Promise.all(promises).then(canvases => {
+             let yPosition = 10;
+            canvases.forEach(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const imgProps= pdf.getImageProperties(imgData)
+                const pdfWidth = pdf.internal.pageSize.getWidth() - 20
+                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width
+
+                if (yPosition + pdfHeight > pdf.internal.pageSize.getHeight() - 10) {
+                      pdf.addPage()
+                      yPosition=10;
+                  }
+                  pdf.addImage(imgData, 'PNG', 10, yPosition, pdfWidth, pdfHeight);
+
+                yPosition+= pdfHeight +10;
+            });
+             pdf.save("reporte_errores.pdf");
+        });
+    }
+
+    function updateCharts(data, errorData) {
+       const errorTypes = {};
+        const errorFrequency = {};
+
+        data.forEach(row => {
+             const error = row['Detalles de la baja'];
+            if (error) {
+                if (errorTypes[error]) {
+                    errorTypes[error]++;
+                } else {
+                    errorTypes[error] = 1;
+                }
+
+                 const words = error.split(' ');
+                words.forEach(word => {
+                    if (errorFrequency[word]) {
+                        errorFrequency[word]++;
+                    } else {
+                        errorFrequency[word] = 1;
+                    }
+                });
+            }
+        });
+
+        const errorTypeLabels = Object.keys(errorTypes);
+        const errorTypeCounts = Object.values(errorTypes);
+
+        const errorFreqLabels = Object.keys(errorFrequency);
+        const errorFreqCounts = Object.values(errorFrequency);
+
+        const errorDistributionCanvas = document.getElementById('errorDistribution').getContext('2d');
+        const errorFrequencyCanvas = document.getElementById('errorFrequency').getContext('2d');
+
+        new Chart(errorDistributionCanvas, {
+            type: 'doughnut',
+            data: {
+                labels: errorTypeLabels,
+                datasets: [{
+                    data: errorTypeCounts,
+                    backgroundColor: errorData.pie_chart.datasets[0].backgroundColor,
+                    borderWidth: 2
+                }]
+            },
+             options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 10,
+                             font:{ size:10}
+                        }
+                    },
+
+                },
+            }
+        });
+
+        new Chart(errorFrequencyCanvas, {
+            type: 'bar',
+            data: {
+                labels: errorTypeLabels,
+                datasets: [{
+                    label: 'Cantidad de Errores',
+                     data: errorTypeCounts,
+                    backgroundColor: errorData.bar_chart.datasets[0].backgroundColor,
+                    borderRadius: 5
+                }]
+            },
+             options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                 plugins: {
+                     legend: {
+                         display: false
+                     }
+                },
+            }
+        });
+    }
+    function updateWordCloud(data) {
+            const errorText = data.map(row => row['Detalles de la baja'] || '').join(' ');
+            const wordCounts = {};
+            errorText.toLowerCase().split(/\W+/).forEach(word => {
+                if (word && word.length > 2) {
+                 if (wordCounts[word]) {
+                     wordCounts[word]++;
+                 } else {
+                     wordCounts[word] = 1;
+                 }
+               }
+            });
+            const words = Object.entries(wordCounts)
+                .sort(([, countA], [, countB]) => countB - countA)
+                .slice(0, 50)
+                .map(([text, size]) => ({ text, size }));
+
+            const width = document.getElementById('wordCloud').offsetWidth;
+            const height = document.getElementById('wordCloud').offsetHeight;
+            d3.layout.cloud()
+                .size([width, height])
+                .words(words)
+                .padding(5)
+                .rotate(() => ~~(Math.random() * 2) * 90)
+                .font('Arial')
+                .fontSize(d => 10 + d.size / 2)
+                .on("end", draw)
+                .start();
+
+            function draw(words) {
+                d3.select("#wordCloud").append("svg")
+                    .attr("width", width)
+                    .attr("height", height)
+                    .append("g")
+                    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+                    .selectAll("text")
+                    .data(words)
+                    .enter().append("text")
+                    .style("font-size", d => d.size + "px")
+                    .style("font-family", "Arial")
+                    .style("fill", (d, i) => d3.schemeCategory10[i % 10])
+                    .attr("text-anchor", "middle")
+                    .attr("transform", d => "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")")
+                    .text(d => d.text);
+            }
+        }
+</script>
+</body>
+</html>
